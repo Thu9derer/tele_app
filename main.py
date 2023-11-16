@@ -1,36 +1,27 @@
 import asyncio
 import logging
-from aiogram import Bot, Dispatcher, types
-from aiogram.filters.command import Command
-
+from aiogram import Bot, Dispatcher, types, executor
+from aiogram.types.web_app_info import WebAppInfo
+from config_reader import config
 
 logging.basicConfig(level=logging.INFO)
 
 
-API_TOKEN = 'YOUR_TELEGRAM_BOT_TOKEN'
+bot = Bot(token=config.bot_token.get_secret_value())
+dp = Dispatcher(bot)
 
 
-bot = Bot(token=API_TOKEN)
-dp = Dispatcher()
-
-
-@dp.message(Command("start"))
+@dp.message_handler(commands=['start'])
 async def cmd_start(message: types.Message):
-    await message.answer("hello world!")
+    marcup = types.ReplyKeyboardMarkup()
+    marcup.add(types.KeyboardButton('Open web APP', web_app=WebAppInfo(url='https://thu9derer.github.io/tele_app/')))
+    await message.answer("Привет!", reply_markup=marcup)
 
 
-@dp.message(Command("help"))
+@dp.message_handler(commands=['help'])
 async def cmd_help(message: types.Message):
     await message.answer("Это помощь.")
 
 
-@dp.message(content_types=types.ContentTypes.TEXT)
-async def echo(message: types.Message):
-    await message.reply(f"Вы сказали: {message.text}")
-
-async def main():
-    await dp.start_polling(bot)
-
-# Запускаем бота
 if __name__ == '__main__':
-    asyncio.run(main())
+    executor.start_polling(dp, skip_updates=True)
